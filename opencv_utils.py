@@ -78,3 +78,14 @@ def draw_rod(img: np.ndarray, hinge1: Point, hinge2: Point):
   cv2.line(img, poly[0, 0], poly[0, 3], ROD_BORDER_COLOR, ROD_BORDER_THICKNESS, cv2.LINE_AA)
   draw_hinge(img, hinge1, angle_deg + 90)
   draw_hinge(img, hinge2, angle_deg + 270)
+
+
+def downsample(img: np.ndarray, downsample_factor: float) -> np.ndarray:
+  img = cv2.resize(
+      img,
+      dsize=None,
+      fx=1/downsample_factor,
+      fy=1/downsample_factor,
+      interpolation=cv2.INTER_AREA
+  )
+  return img

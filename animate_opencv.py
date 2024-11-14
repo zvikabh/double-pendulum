@@ -1,5 +1,10 @@
-import time
+"""Animation of a double pendulum, saved to an MP4 file.
 
+Note that because of OpenCV compression setting limitations, the output file
+will be quite large. You can easily reduce it to a smaller MP4 using:
+
+ffmpeg -i animation.mp4 -vcodec libx264 -crf 30 -preset slow animation_small.mp4
+"""
 import cv2
 import numpy as np
 import tqdm
@@ -12,8 +17,8 @@ L1 = 200
 L2 = 300
 M1 = 100
 M2 = 300
-PIXELS_PER_METER = 2
-DURATION = 600
+PIXELS_PER_METER = 1.5
+DURATION = 450
 INITIAL_STATE = dbl_pendulum_solver.State(
     theta1=np.deg2rad(45),
     theta1_dot=0,
@@ -24,16 +29,11 @@ SPEEDUP_RATIO = 10  # Ratio between simulation time and video time
 FRAMES_PER_SEC = 25
 SIMULATION_TIME_STEP = 1 / FRAMES_PER_SEC * SPEEDUP_RATIO
 
-IMAGE_RESOLUTION = (1600, 1600)
+IMAGE_RESOLUTION = (2000, 2000)
 DOWNSAMPLE_FACTOR = 2
 OUTPUT_RESOLUTION = (IMAGE_RESOLUTION[0]//DOWNSAMPLE_FACTOR, IMAGE_RESOLUTION[1]//DOWNSAMPLE_FACTOR)
 
 FIXED_HINGE = (IMAGE_RESOLUTION[0]//2, IMAGE_RESOLUTION[1]//2 - 200)
-
-
-def downsample(img: np.ndarray) -> np.ndarray:
-  img = cv2.resize(img, dsize=None, fx=1/DOWNSAMPLE_FACTOR, fy=1/DOWNSAMPLE_FACTOR, interpolation=cv2.INTER_AREA)
-  return img
 
 
 def main():
@@ -53,7 +53,7 @@ def main():
     hinge2 = hinge2.astype(np.int32)
     opencv_utils.draw_rod(img, FIXED_HINGE, hinge1)
     opencv_utils.draw_rod(img, hinge1, hinge2)
-    img = downsample(img)
+    img = opencv_utils.downsample(img, DOWNSAMPLE_FACTOR)
     img = (img * 255).astype(np.uint8)
     video.write(img)
   
