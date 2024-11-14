@@ -1,7 +1,8 @@
 """Animation of a double pendulum, saved to an MP4 file.
 
 Note that because of OpenCV compression setting limitations, the output file
-will be quite large. You can easily reduce it to a smaller MP4 using:
+will be quite large. You can easily reduce it to a much smaller MP4, while
+essentially preserving the same quality, using:
 
 ffmpeg -i animation.mp4 -vcodec libx264 -crf 30 -preset slow animation_small.mp4
 """
@@ -11,6 +12,7 @@ import tqdm
 
 import dbl_pendulum_solver
 import opencv_utils
+import points_trail
 
 
 L1 = 200
@@ -35,7 +37,6 @@ OUTPUT_RESOLUTION = (IMAGE_RESOLUTION[0]//DOWNSAMPLE_FACTOR, IMAGE_RESOLUTION[1]
 
 FIXED_HINGE = (IMAGE_RESOLUTION[0]//2, IMAGE_RESOLUTION[1]//2 - 200)
 
-
 def main():
   solution = dbl_pendulum_solver.solve(
       DURATION, INITIAL_STATE, L1, L2, M1, M2,
@@ -43,6 +44,7 @@ def main():
 
   fourcc = cv2.VideoWriter_fourcc(*'mp4v')
   video = cv2.VideoWriter('animation.mp4', fourcc, FRAMES_PER_SEC, OUTPUT_RESOLUTION)
+  trail = points_trail.PointsTrail()
   for i in tqdm.tqdm(range(len(solution.t))):
     img = np.zeros(IMAGE_RESOLUTION + (3,), dtype=np.float32)
     pos1 = L1 * np.asarray([np.sin(solution.theta1[i]), np.cos(solution.theta1[i])])
@@ -51,6 +53,8 @@ def main():
     hinge2 = FIXED_HINGE + pos2 * PIXELS_PER_METER
     hinge1 = hinge1.astype(np.int32)
     hinge2 = hinge2.astype(np.int32)
+    trail.add_point(hinge2)
+    trail.draw_on_img(img)
     opencv_utils.draw_rod(img, FIXED_HINGE, hinge1)
     opencv_utils.draw_rod(img, hinge1, hinge2)
     img = opencv_utils.downsample(img, DOWNSAMPLE_FACTOR)
