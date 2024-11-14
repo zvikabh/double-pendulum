@@ -6,13 +6,13 @@ Point = tuple[float, float]
 Color = tuple[int, int, int]
 
 
-ROD_FILL_COLOR = (255, 128, 0)
+ROD_FILL_COLOR = (1, 0.5, 0)
 HINGE_FILL_COLOR = (0, 0, 0)
-ROD_BORDER_COLOR = (255, 255, 0)
-ROD_BORDER_THICKNESS = 2
-ROD_WIDTH = 50  # Must be even
+ROD_BORDER_COLOR = (1, 1, 0)
+ROD_BORDER_THICKNESS = 3
+ROD_WIDTH = 100  # Must be even
 ROD_HWIDTH = ROD_WIDTH // 2
-HINGE_RADIUS = 10
+HINGE_RADIUS = 20
 
 
 def ellipse_with_fill(img, center, axes, startAngle, endAngle, fillColor, borderColor, borderThickness):
