@@ -6,9 +6,10 @@ Point = tuple[float, float]
 Color = tuple[int, int, int]
 
 
+BACKGROUND_COLOR = (1, 1, 1)
 ROD_FILL_COLOR = (1, 0.5, 0)
-HINGE_FILL_COLOR = (0, 0, 0)
-ROD_BORDER_COLOR = (1, 1, 0)
+HINGE_FILL_COLOR = BACKGROUND_COLOR
+ROD_BORDER_COLOR = (.8, .2, 0)
 ROD_BORDER_THICKNESS = 3
 ROD_WIDTH = 100  # Must be even
 ROD_HWIDTH = ROD_WIDTH // 2

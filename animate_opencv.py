@@ -15,16 +15,16 @@ import opencv_utils
 import points_trail
 
 
-L1 = 200
-L2 = 300
-M1 = 100
-M2 = 300
+L1 = 250
+L2 = 250
+M1 = 200
+M2 = 200
 PIXELS_PER_METER = 1.5
-DURATION = 450
+DURATION = 400
 INITIAL_STATE = dbl_pendulum_solver.State(
-    theta1=np.deg2rad(45),
+    theta1=np.deg2rad(90),
     theta1_dot=0,
-    theta2=np.deg2rad(140),
+    theta2=np.deg2rad(90),
     theta2_dot=0,
 )
 SPEEDUP_RATIO = 10  # Ratio between simulation time and video time
@@ -42,11 +42,15 @@ def main():
       DURATION, INITIAL_STATE, L1, L2, M1, M2,
       num_eval_points=int(DURATION/SIMULATION_TIME_STEP))
 
+  bgimg = np.zeros(IMAGE_RESOLUTION + (3,), dtype=np.float32)
+  for j in range(3):
+    bgimg[:,:,j].fill(opencv_utils.BACKGROUND_COLOR[j])
+
   fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-  video = cv2.VideoWriter('animation.mp4', fourcc, FRAMES_PER_SEC, OUTPUT_RESOLUTION)
+  video = cv2.VideoWriter('animation_wp.mp4', fourcc, FRAMES_PER_SEC, OUTPUT_RESOLUTION)
   trail = points_trail.PointsTrail()
   for i in tqdm.tqdm(range(len(solution.t))):
-    img = np.zeros(IMAGE_RESOLUTION + (3,), dtype=np.float32)
+    img = np.copy(bgimg)
     pos1 = L1 * np.asarray([np.sin(solution.theta1[i]), np.cos(solution.theta1[i])])
     pos2 = pos1 + L2 * np.asarray([np.sin(solution.theta2[i]), np.cos(solution.theta2[i])])
     hinge1 = FIXED_HINGE + pos1 * PIXELS_PER_METER
