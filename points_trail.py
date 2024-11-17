@@ -5,8 +5,8 @@ import opencv_utils
 
 
 TRAIL_COLOR = (0, 0, 0.8)
-TRAIL_FADEOUT_START = 200
-TRAIL_FADEOUT_END = 400
+TRAIL_FADEOUT_START = 100
+TRAIL_FADEOUT_END = 200
 
 
 class PointsTrail:

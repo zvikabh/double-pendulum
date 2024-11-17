@@ -5,6 +5,10 @@ will be quite large. You can easily reduce it to a much smaller MP4, while
 essentially preserving the same quality, using:
 
 ffmpeg -i animation.mp4 -vcodec libx264 -crf 30 -preset slow animation_small.mp4
+
+To convert to a gif, the following options are recommended:
+
+ffmpeg -i animation.mp4 -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" animation.gif
 """
 import cv2
 import numpy as np
@@ -27,12 +31,12 @@ INITIAL_STATE = dbl_pendulum_solver.State(
     theta2=np.deg2rad(90),
     theta2_dot=0,
 )
-SPEEDUP_RATIO = 10  # Ratio between simulation time and video time
-FRAMES_PER_SEC = 25
+SPEEDUP_RATIO = 15  # Ratio between simulation time and video time
+FRAMES_PER_SEC = 15
 SIMULATION_TIME_STEP = 1 / FRAMES_PER_SEC * SPEEDUP_RATIO
 
 IMAGE_RESOLUTION = (2000, 2000)
-DOWNSAMPLE_FACTOR = 2
+DOWNSAMPLE_FACTOR = 5
 OUTPUT_RESOLUTION = (IMAGE_RESOLUTION[0]//DOWNSAMPLE_FACTOR, IMAGE_RESOLUTION[1]//DOWNSAMPLE_FACTOR)
 
 FIXED_HINGE = (IMAGE_RESOLUTION[0]//2, IMAGE_RESOLUTION[1]//2 - 200)
