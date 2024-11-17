@@ -2,3 +2,4 @@ media/
 *.pyc
 *.mp4
 *.gif
+!example.mp4
