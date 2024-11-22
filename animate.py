@@ -23,14 +23,38 @@ L1 = 250
 L2 = 250
 M1 = 200
 M2 = 200
+
 PIXELS_PER_METER = 1.5
 DURATION = 400
-INITIAL_STATE = dbl_pendulum_solver.State(
+
+# You may comment out all but the first State objects to get an animation with just one pendulum.
+INITIAL_STATES = [
+  dbl_pendulum_solver.State(
     theta1=np.deg2rad(90),
     theta1_dot=0,
     theta2=np.deg2rad(90),
     theta2_dot=0,
-)
+  ),
+  dbl_pendulum_solver.State(
+    theta1=np.deg2rad(90),
+    theta1_dot=0,
+    theta2=np.deg2rad(89),
+    theta2_dot=0,
+  ),
+  dbl_pendulum_solver.State(
+    theta1=np.deg2rad(90),
+    theta1_dot=0,
+    theta2=np.deg2rad(88),
+    theta2_dot=0,
+  ),
+]
+
+TRAIL_COLORS = [
+  (.0, .8, .8),
+  (.0, .5, .8),
+  (.0, .0, .8),
+]
+
 SPEEDUP_RATIO = 10  # Ratio between simulation time and video time
 FRAMES_PER_SEC = 25
 SIMULATION_TIME_STEP = 1 / FRAMES_PER_SEC * SPEEDUP_RATIO
@@ -42,9 +66,14 @@ OUTPUT_RESOLUTION = (IMAGE_RESOLUTION[0]//DOWNSAMPLE_FACTOR, IMAGE_RESOLUTION[1]
 FIXED_HINGE = (IMAGE_RESOLUTION[0]//2, IMAGE_RESOLUTION[1]//2 - 200)
 
 def main():
-  solution = dbl_pendulum_solver.solve(
-      DURATION, INITIAL_STATE, L1, L2, M1, M2,
-      num_eval_points=int(DURATION/SIMULATION_TIME_STEP))
+  solutions = []
+  for initial_state in INITIAL_STATES:
+    solutions.append(
+        dbl_pendulum_solver.solve(
+            DURATION, initial_state, L1, L2, M1, M2,
+            num_eval_points=int(DURATION/SIMULATION_TIME_STEP)
+        )
+    )
 
   bgimg = np.zeros(IMAGE_RESOLUTION + (3,), dtype=np.float32)
   for j in range(3):
@@ -52,19 +81,22 @@ def main():
 
   fourcc = cv2.VideoWriter_fourcc(*'mp4v')
   video = cv2.VideoWriter('animation_wp.mp4', fourcc, FRAMES_PER_SEC, OUTPUT_RESOLUTION)
-  trail = points_trail.PointsTrail()
-  for i in tqdm.tqdm(range(len(solution.t))):
+  trails = [points_trail.PointsTrail(TRAIL_COLORS[i]) for i in range(len(solutions))]
+  for i in tqdm.tqdm(range(len(solutions[0].t))):
     img = np.copy(bgimg)
-    pos1 = L1 * np.asarray([np.sin(solution.theta1[i]), np.cos(solution.theta1[i])])
-    pos2 = pos1 + L2 * np.asarray([np.sin(solution.theta2[i]), np.cos(solution.theta2[i])])
-    hinge1 = FIXED_HINGE + pos1 * PIXELS_PER_METER
-    hinge2 = FIXED_HINGE + pos2 * PIXELS_PER_METER
-    hinge1 = hinge1.astype(np.int32)
-    hinge2 = hinge2.astype(np.int32)
-    trail.add_point(hinge2)
-    trail.draw_on_img(img)
-    opencv_utils.draw_rod(img, FIXED_HINGE, hinge1)
-    opencv_utils.draw_rod(img, hinge1, hinge2)
+    pos1, pos2 = [], []
+    hinge1, hinge2 = [], []
+    for n, solution in enumerate(solutions):
+      pos1.append(L1 * np.asarray([np.sin(solution.theta1[i]), np.cos(solution.theta1[i])]))
+      pos2.append(pos1[-1] + L2 * np.asarray([np.sin(solution.theta2[i]), np.cos(solution.theta2[i])]))
+      hinge1.append((FIXED_HINGE + pos1[-1] * PIXELS_PER_METER).astype(np.int32))
+      hinge2.append((FIXED_HINGE + pos2[-1] * PIXELS_PER_METER).astype(np.int32))
+      trails[n].add_point(hinge2[-1])
+      trails[n].draw_on_img(img)
+    for h1, h2 in zip(hinge1, hinge2):
+      opencv_utils.draw_rod(img, FIXED_HINGE, h1)
+      opencv_utils.draw_rod(img, h1, h2)
+
     img = opencv_utils.downsample(img, DOWNSAMPLE_FACTOR)
     img = (img * 255).astype(np.uint8)
     video.write(img)

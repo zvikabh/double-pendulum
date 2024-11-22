@@ -2,4 +2,6 @@ media/
 *.pyc
 *.mp4
 *.gif
+*.webm
 !example.mp4
+!animation.gif
