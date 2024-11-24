@@ -11,6 +11,7 @@ To convert to a gif, the following options are recommended:
 ffmpeg -i animation.mp4 -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" animation.gif
 """
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 
@@ -82,6 +83,7 @@ def main():
   fourcc = cv2.VideoWriter_fourcc(*'mp4v')
   video = cv2.VideoWriter('animation_wp.mp4', fourcc, FRAMES_PER_SEC, OUTPUT_RESOLUTION)
   trails = [points_trail.PointsTrail(TRAIL_COLORS[i]) for i in range(len(solutions))]
+  all_pos_2 = [[], [], []]
   for i in tqdm.tqdm(range(len(solutions[0].t))):
     img = np.copy(bgimg)
     pos1, pos2 = [], []
@@ -93,15 +95,30 @@ def main():
       hinge2.append((FIXED_HINGE + pos2[-1] * PIXELS_PER_METER).astype(np.int32))
       trails[n].add_point(hinge2[-1])
       trails[n].draw_on_img(img)
+      all_pos_2[n].append(pos2[-1])
     for h1, h2 in zip(hinge1, hinge2):
       opencv_utils.draw_rod(img, FIXED_HINGE, h1)
       opencv_utils.draw_rod(img, h1, h2)
 
     img = opencv_utils.downsample(img, DOWNSAMPLE_FACTOR)
     img = (img * 255).astype(np.uint8)
-    video.write(img)
+    # video.write(img)
   
   video.release()
+ 
+  all_pos_2 = np.asarray(all_pos_2)
+  print(all_pos_2.shape)
+  distances = [[], [], []]
+  indexes = [(0,1), (0,2), (1,2)]
+  for n, (i, j) in enumerate(indexes):
+    distances[n] = np.sqrt(np.sum(np.square(all_pos_2[i,:,:] - all_pos_2[j,:,:]), axis=1))
+  distances = np.asarray(distances)
+  print(f'{distances.shape=}')
+  plt.figure()
+  for i in range(len(distances)):
+    plt.plot(distances[i], label=f'{indexes[i]}')
+  plt.legend()
+  plt.show()
 
 
 if __name__ == '__main__':
